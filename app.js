@@ -40,13 +40,13 @@ var options = {
 }
 
 var sessionStore = new MySQLStore(options);
-
+app.set('trust proxy', 1)
 app.use(session({
   secret: 'fdfgcxvvf12',
   resave: false,
   store: sessionStore,
-  saveUninitialized: false
-  // cookie: { secure: true }
+  saveUninitialized: false,
+  cookie: { secure: true }
 }));
 app.use(flash());
 app.use(passport.initialize());
