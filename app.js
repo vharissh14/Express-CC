@@ -5,6 +5,12 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
+var bcrypt = require('bcrypt');
+var flash = require('connect-flash');
+var session = require('express-session');
+var passport = require('passport');
+var MySQLStore = require('express-mysql-session')(session);
+var LocalStrategy = require('passport-local').Strategy;
 
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -26,9 +32,55 @@ app.use(expressValidator());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+var options = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database : process.env.DB_NAME
+}
+
+var sessionStore = new MySQLStore(options);
+
+app.use(session({
+  secret: 'fdfgcxvvf12',
+  resave: false,
+  store: sessionStore,
+  saveUninitialized: false
+  // cookie: { secure: true }
+}));
+app.use(flash());
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use('/', index);
 app.use('/users', users);
 app.use('/register', register);
+
+passport.use(new LocalStrategy(
+  function(username, password, done) {
+    const db = require('./db');
+    db.query('SELECT id, email, password from users where username=?',[username], function(err, result, fields) {
+      if(err) throw err;
+
+      if(result.length === 0)
+      {
+        done(null, false, {message: 'Please check username/password'});
+      }
+      else{
+        const hash = result[0].password.toString();
+        bcrypt.compare(password, hash, function(err, response) {
+          if(response===true)
+          {
+            done(null, {user_id: result[0].id, email: result[0].email});
+          }
+          else {
+            done(null, false, {message: 'Please check username/password'});
+          }
+        });
+      }
+    })
+  }
+));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -68,7 +120,7 @@ filenames.forEach(function (filename) {
 });
 
 hbs.registerHelper('json', function(context) {
-    return JSON.stringify(context, null, 2);
+  return JSON.stringify(context, null, 2);
 });
 
 
