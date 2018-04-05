@@ -13,7 +13,7 @@ router.get('/', function(req, res, next) {
 router.get('/profile', authenticationMiddleware(), function(req, res, next) {
   // console.log("in the root page")
   var cookie = req.session.passport;
-  res.render('profile', { title: 'Profile Page', email: cookie.user.email, id: cookie.user.id, auth: req.isAuthenticated() });
+  res.render('profile', { title: 'Profile Page', email: cookie.user.email, pseudoname: cookie.user.pseudoname, name: cookie.user.name, auth: req.isAuthenticated() });
 });
 
 router.get('/login', function(req, res, next) {

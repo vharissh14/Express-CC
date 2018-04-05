@@ -2,6 +2,8 @@ var express = require('express');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
+var redis   = require("redis");
+
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
@@ -9,6 +11,9 @@ var bcrypt = require('bcrypt');
 var flash = require('connect-flash');
 var session = require('express-session');
 var passport = require('passport');
+var redisStore = require('connect-redis')(session);
+var client  = redis.createClient({host : '18.219.32.182',port : 6379})
+client.auth('Apollo13');
 var MySQLStore = require('express-mysql-session')(session);
 var LocalStrategy = require('passport-local').Strategy;
 
@@ -33,18 +38,19 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 var options = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database : process.env.DB_NAME
-}
+  host: '18.219.32.182',
+  port: 6379,
+  client: client,
+  ttl: 260
+};
 
-var sessionStore = new MySQLStore(options);
+var sessStore = new redisStore(options);
+
 app.set('trust proxy', 1)
 app.use(session({
   secret: 'fdfgcxvvf12',
   resave: false,
-  store: sessionStore,
+  store: sessStore,
   saveUninitialized: false
   // cookie: { secure: true }
 }));
@@ -58,27 +64,17 @@ app.use('/register', register);
 
 passport.use(new LocalStrategy(
   function(username, password, done) {
-    const db = require('./db');
-    db.query('SELECT id, email, password from users where username=?',[username], function(err, result, fields) {
-      if(err) throw err;
-
-      if(result.length === 0)
-      {
-        done(null, false, {message: 'Please check username/password'});
-      }
-      else{
-        const hash = result[0].password.toString();
-        bcrypt.compare(password, hash, function(err, response) {
-          if(response===true)
-          {
-            done(null, {user_id: result[0].id, email: result[0].email});
-          }
-          else {
-            done(null, false, {message: 'Please check username/password'});
-          }
-        });
-      }
-    })
+    console.log(username+"   "+password);
+    require('./services/redisdb')(function (db1){
+      db1.userAuthentication(username, password, function(status){
+        if(status=='401'){
+          done(null, false, {'message': 'Please check Pseudoname/Password'});
+        }
+        else{
+          done(null, {name: status.name, pseudoname: status.pseudoname, email: status.email, phone: status.phone});
+        }
+      });
+    });
   }
 ));
 
