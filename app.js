@@ -45,8 +45,8 @@ app.use(session({
   secret: 'fdfgcxvvf12',
   resave: false,
   store: sessionStore,
-  saveUninitialized: false,
-  cookie: { secure: true }
+  saveUninitialized: false
+  // cookie: { secure: true }
 }));
 app.use(flash());
 app.use(passport.initialize());

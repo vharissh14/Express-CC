@@ -7,17 +7,17 @@ router.get('/', function(req, res, next) {
   // console.log("in the root page")
   console.log(req.user);
   console.log('Root page Authenticated: '+req.isAuthenticated());
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'Teamtracker', auth:req.isAuthenticated() });
 });
 
 router.get('/profile', authenticationMiddleware(), function(req, res, next) {
   // console.log("in the root page")
   var cookie = req.session.passport;
-  res.render('profile', { title: 'Profile Page', email: cookie.user.email, id: cookie.user.id });
+  res.render('profile', { title: 'Profile Page', email: cookie.user.email, id: cookie.user.id, auth: req.isAuthenticated() });
 });
 
 router.get('/login', function(req, res, next) {
-  res.render('login', { title: 'Login', errormsg: req.flash('error')});
+  res.render('login', { title: 'Login', errormsg: req.flash('error'), auth: req.isAuthenticated()});
 });
 
 router.get('/logout', function(req, res, next) {
