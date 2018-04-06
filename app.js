@@ -12,8 +12,8 @@ var flash = require('connect-flash');
 var session = require('express-session');
 var passport = require('passport');
 var redisStore = require('connect-redis')(session);
-var client  = redis.createClient({host : '18.219.32.182',port : 6379})
-client.auth('Apollo13');
+var client  = redis.createClient({host : 'localhost', port : 6379})
+// client.auth('Apollo13');
 var MySQLStore = require('express-mysql-session')(session);
 var LocalStrategy = require('passport-local').Strategy;
 
@@ -38,7 +38,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 var options = {
-  host: '18.219.32.182',
+  host: 'localhost',
   port: 6379,
   client: client,
   ttl: 260
@@ -71,7 +71,7 @@ passport.use(new LocalStrategy(
           done(null, false, {'message': 'Please check Pseudoname/Password'});
         }
         else{
-          done(null, {name: status.name, pseudoname: status.pseudoname, email: status.email, phone: status.phone});
+          done(null, {name: status.name, pseudoname: status.pseudoname, email: status.email, phone: status.phone, teams: status.teams});
         }
       });
     });

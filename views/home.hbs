@@ -1,0 +1,23 @@
+{{> header }}
+<div id="map"></div>
+
+
+<h1>{{title}}</h1>
+<p>pseudoname: {{pseudoname}}</p>
+<p>Email: {{email}}</p>
+<p>name: {{name}}</p>
+<p>Team: {{teams}}</p>
+<p>Welcome to {{title}}</p>
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDj9OqHfUHE0ceYaJWvltSYvMb0gFS97h4"></script>
+<script type="text/javascript">
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(success, error, options);
+}
+else {
+  alert('Geo Location feature is not supported in this browser.');
+}
+}
+</script>
+{{> footer-end }}

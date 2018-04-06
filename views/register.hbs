@@ -1,65 +1,115 @@
 {{> header }}
-<div class="container">
-  <div class="form-control">
-    {{#if errors}}
-    {{#each errors}}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      {{this.msg}}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-    {{/each}}
-    {{/if}}
-    {{#if error_p}}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      {{error_p}}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-    {{/if}}
-    <h2>{{title}}</h2>
-    <form method="POST" action="/register">
-      <div class="form-group">
-        <label for="username">Name</label>
-        <input type="text" class="form-control" name="name" placeholder="Enter Full Name">
-      </div>
-      <div class="form-group">
-        <label for="username">Pseudoname</label>
-        <input type="text" class="form-control" name="pseudoname" placeholder="Enter Pseudoname">
-      </div>
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" class="form-control" name="email" placeholder="Enter Email">
-      </div>
-      <div class="form-group">
-        <label for="email">Phone</label>
-        <input type="text" class="form-control" name="phone" placeholder="Enter Phone Number">
-      </div>
-      <!-- <div class="row">
-        <div class="col-sm-9">
-          <select class="form-control" id="teams" name="teams">
-            <option value="" disabled="" selected="">Please select the Team</option>
-            <option value="{{team.teamName}}">{{team.teamName}}</option>
-          </select>
-          <p ng-show="registerForm.teams.$invalid && !registerForm.teams.$pristine" class="help-block">Team is required</p>
-        </div>
-        <div class="col-sm-3">
-          <button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#myModal"> Add </button>
-        </div>
-      </div> -->
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" class="form-control" name="password" placeholder="Enter Password">
-      </div>
-      <div class="form-group">
-        <label for="password1">Re-Enter Password</label>
-        <input type="password" class="form-control" name="rpass" placeholder="Enter Password">
-      </div>
-      <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
 
+    </div>
+    <div class="col">
+      <div class="form-control">
+        {{#if errors}}
+        {{#each errors}}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{this.msg}}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {{/each}}
+        {{/if}}
+        {{#if error_p}}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{error_p}}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {{/if}}
+        <h2>{{title}}</h2>
+        <form method="POST" action="/register">
+          <div class="form-group">
+            <label for="username">Name</label>
+            <input type="text" class="form-control" name="name" placeholder="Enter Full Name">
+          </div>
+          <div class="form-group">
+            <label for="username">Pseudoname</label>
+            <input type="text" class="form-control" name="pseudoname" placeholder="Enter Pseudoname">
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" name="email" placeholder="Enter Email">
+          </div>
+          <div class="form-group">
+            <label for="email">Phone</label>
+            <input type="text" class="form-control" name="phone" placeholder="Enter Phone Number">
+          </div>
+
+          <div class="form-group">
+            <label for="team">Team</label>
+
+            <div class="row">
+              <div class="col-sm-8">
+                <select class="form-control" id="teams" name="teams">
+                  <option value="" disabled="" selected="">Please select the Team</option>
+                  {{#each teamdetails}}
+                  <option value="{{this.teamname}}">{{this.teamname}}</option>
+                  {{/each}}
+                </select>
+                <!-- <p ng-show="registerForm.teams.$invalid && !registerForm.teams.$pristine" class="help-block">Team is required</p> -->
+              </div>
+              <div class="col-sm-4">
+                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal">Add Team</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" name="password" placeholder="Enter Password">
+          </div>
+          <div class="form-group">
+            <label for="password1">Re-Enter Password</label>
+            <input type="password" class="form-control" name="rpass" placeholder="Enter Password">
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+        <!-- The Modal -->
+        <div class="modal fade" id="myModal">
+          <div class="modal-dialog">
+            <div class="modal-content">
+
+              <!-- Modal Header -->
+              <div class="modal-header">
+                <h4 class="modal-title">Enter Team Details</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+              </div>
+
+              <!-- Modal body -->
+              <div class="modal-body">
+                <form method="POST" action="/team" name="teamForm">
+                  <div class="form-group">
+                    <label for="teamname">Team Name</label>
+                    <input type="text" class="form-control" name="teamname" placeholder="Enter Team Name">
+                  </div>
+                  <div class="form-group">
+                    <label for="teamicon">Team Icon</label>
+                    <input type="text" class="form-control" name="teamicon" placeholder="Enter Team Icon">
+                  </div>
+                  <div class="pull-right">
+                    <button type="submit" class="btn btn-primary">Add</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="col">
+
+    </div>
   </div>
 </div>
 

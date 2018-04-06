@@ -8,7 +8,18 @@ var bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 router.get('/', function(req, res, next) {
-  res.render('register', { title: 'User Registration' });
+  require('../services/redisdb')(function (db1){
+    db1.getAllTeams(function(result){
+      var teams=[];
+      if (result) {
+        Object.keys(result).forEach(key => {
+          var objson=JSON.parse(result[key]);
+          teams.push(objson);
+        });
+      }
+      res.render('register', { title: 'User Registration', teamdetails: teams });
+    });
+  });
 });
 
 router.post('/', function(req, res, next) {
@@ -29,42 +40,18 @@ router.post('/', function(req, res, next) {
     bcrypt.hash(password, saltRounds, function(err, hash) {
       user_info['hash'] = hash;
       require('../services/redisdb')(function (db1){
-       db1.registerUser(user_info,function(status){
-         if(status === '201')
-         {
-           res.redirect('/login');
-         }
-         else {
-           res.render('register', {title:'User Registration', error_p:"Please enter a different pseudoname."});
-         }
-       });
-     });
-
-      // db.query('insert into users (pseudoname, email, password, phone, name) values (?, ?, ?, ?, ?)', [pseudoname, email, hash, phone, name],
-      // function(error, result, field)
-      // {
-      //   if(error)
-      //   {
-      //     throw error;
-      //   }
-      //   else{
-      //     console.log('The inserted id is: '+result.insertId);
-      //     const user_id = result.insertId;
-      //     req.login(user_id, function(err) {
-      //       if(err)
-      //       {
-      //         throw error;
-      //       }
-      //       else {
-      //         res.redirect('/');
-      //       }
-      //     });
-      //     // res.redirect('/');
-      //   }
-      // });
+        db1.registerUser(user_info,function(status){
+          if(status === '201')
+          {
+            res.redirect('/login');
+          }
+          else {
+            res.render('register', {title:'User Registration', error_p:"Please enter a different pseudoname."});
+          }
+        });
+      });
     });
   }
-  // res.render('register', { title: 'User Registration' });
 });
 
 passport.serializeUser(function(user_id, done) {

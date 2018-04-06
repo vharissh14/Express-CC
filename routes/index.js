@@ -10,10 +10,37 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Teamtracker', auth:req.isAuthenticated() });
 });
 
-router.get('/profile', authenticationMiddleware(), function(req, res, next) {
-  // console.log("in the root page")
+router.get('/home', authenticationMiddleware(), function(req, res, next) {
   var cookie = req.session.passport;
-  res.render('profile', { title: 'Profile Page', email: cookie.user.email, pseudoname: cookie.user.pseudoname, name: cookie.user.name, auth: req.isAuthenticated() });
+  res.render('Home',
+  {
+    title: 'Home Page',
+    email: cookie.user.email,
+    pseudoname: cookie.user.pseudoname,
+    name: cookie.user.name,
+    teams: cookie.user.teams,
+    auth: req.isAuthenticated()
+  });
+});
+
+router.post('/team', function(req, res, next){
+
+  var team = req.body;
+  team.id=require('uuid/v4')();
+  // validation
+  require('../services/redisdb')(function (db1){
+    db1.saveTeam(team, function(result){
+      var teams=[];
+      if (result) {
+        Object.keys(result).forEach(key => {
+          var objson=JSON.parse(result[key]);
+          teams.push(objson);
+        });
+      }
+      res.render('register', { title: 'User Registration', teamdetails: teams });
+    });
+  });
+
 });
 
 router.get('/login', function(req, res, next) {
@@ -28,14 +55,13 @@ router.get('/logout', function(req, res, next) {
 
 router.post('/login', passport.authenticate('local'
 , {
-  successRedirect: '/profile',
+  successRedirect: '/home',
   failureRedirect: '/login',
   failureFlash: true
 }));
 
 function authenticationMiddleware() {
   return (req, res, next) => {
-    console.log(JSON.stringify(req.session.passport));
     if(req.isAuthenticated()) return next();
     res.redirect('/');
   }
