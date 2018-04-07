@@ -1,23 +1,71 @@
 {{> header }}
 <div id="map"></div>
 
-
-<h1>{{title}}</h1>
-<p>pseudoname: {{pseudoname}}</p>
-<p>Email: {{email}}</p>
-<p>name: {{name}}</p>
-<p>Team: {{teams}}</p>
-<p>Welcome to {{title}}</p>
-
-
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDj9OqHfUHE0ceYaJWvltSYvMb0gFS97h4"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script type="text/javascript">
+var socket = io.connect();
+var marker={};
+var userObj;
+var options = {
+  enableHighAccuracy: false,
+  timeout: 15000,
+  maximumAge: 0
+};
+
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(success, error, options);
 }
 else {
   alert('Geo Location feature is not supported in this browser.');
 }
+function success(pos) {
+  var myLatLng={lat:pos.coords.latitude, lng:pos.coords.longitude};
+  console.log(myLatLng);
+  var map = new google.maps.Map(document.getElementById('map'),{
+    zoom: 15,
+    center: myLatLng
+  });
+
+  // var marker = new google.maps.Marker({
+  //   position: myLatLng,
+  //   map: map,
+  //   title:"Hello World!",
+  //   visible: true
+  // });
+  $.getJSON("/api/user", function(data) {
+    data.user['location'] = myLatLng;
+    socket.emit('subscribe', data.user);
+  });
+  socket.on('userList', function(user_data){
+
+    for(var i=0; i<user_data.length; i++){
+      userObj = user_data[i];
+      marker[userObj.pseudoname] = new google.maps.Marker({
+        position: new google.maps.LatLng(userObj.location.lat, userObj.location.lng),
+        map: map
+      });
+      // google.maps.event.addListener(newMarker, 'click', (function (newMarker, i) {
+      //   return function () {
+      //
+      //     infowindow.setContent(compiledContent[0].innerHTML);
+      //     infowindow.open(map, newMarker);
+      //   }
+      // })(newMarker, i));
+    }
+    console.log(JSON.stringify(user_data));
+  });
+}
+
+function error(err) {
+  console.log(err.message);
+  if(err.message.indexOf("Only secure origins are allowed") == 0) {
+    // Secure Origin issue.
+    console.log('HTTPS error');
+  }
+  console.warn(`ERROR(${err.code}): ${err.message}`);
 }
 </script>
+
 {{> footer-end }}

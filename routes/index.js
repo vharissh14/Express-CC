@@ -19,8 +19,13 @@ router.get('/home', authenticationMiddleware(), function(req, res, next) {
     pseudoname: cookie.user.pseudoname,
     name: cookie.user.name,
     teams: cookie.user.teams,
+    eventname: cookie.user.eventname,
     auth: req.isAuthenticated()
   });
+});
+
+router.get('/api/user', function(req, res) {
+  res.send(req.session.passport);
 });
 
 router.post('/team', function(req, res, next){

@@ -21,7 +21,8 @@ var index = require('./routes/index');
 var users = require('./routes/users');
 var register = require('./routes/register');
 var app = express();
-
+var server=app.listen(5000);
+var io = require('socket.io').listen(server);
 require('dotenv').config();
 
 // view engine setup
@@ -41,7 +42,7 @@ var options = {
   host: 'localhost',
   port: 6379,
   client: client,
-  ttl: 260
+  ttl: 3600
 };
 
 var sessStore = new redisStore(options);
@@ -52,7 +53,7 @@ app.use(session({
   resave: false,
   store: sessStore,
   saveUninitialized: false
-  // cookie: { secure: true }
+  // cookie: { maxAge: 90000 }
 }));
 app.use(flash());
 app.use(passport.initialize());
@@ -62,16 +63,20 @@ app.use('/', index);
 app.use('/users', users);
 app.use('/register', register);
 
-passport.use(new LocalStrategy(
-  function(username, password, done) {
-    console.log(username+"   "+password);
+require('./controllers/mapsocket')(function (callback){
+  callback.socketio(io,{
+  });
+});
+passport.use(new LocalStrategy({ passReqToCallback: true },
+  function(req, username, password, done) {
+    console.log(req);
     require('./services/redisdb')(function (db1){
       db1.userAuthentication(username, password, function(status){
         if(status=='401'){
           done(null, false, {'message': 'Please check Pseudoname/Password'});
         }
         else{
-          done(null, {name: status.name, pseudoname: status.pseudoname, email: status.email, phone: status.phone, teams: status.teams});
+          done(null, {name: status.name, pseudoname: status.pseudoname, email: status.email, phone: status.phone, teams: status.teams, eventname: req.body.eventname});
         }
       });
     });
