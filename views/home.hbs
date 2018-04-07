@@ -8,9 +8,10 @@
 var socket = io.connect();
 var marker={};
 var userObj;
+var markers = [];
 var options = {
   enableHighAccuracy: false,
-  timeout: 15000,
+  timeout: 10000,
   maximumAge: 0
 };
 
@@ -27,35 +28,66 @@ function success(pos) {
     zoom: 15,
     center: myLatLng
   });
-
-  // var marker = new google.maps.Marker({
-  //   position: myLatLng,
-  //   map: map,
-  //   title:"Hello World!",
-  //   visible: true
-  // });
   $.getJSON("/api/user", function(data) {
     data.user['location'] = myLatLng;
     socket.emit('subscribe', data.user);
   });
-  socket.on('userList', function(user_data){
+  var infowindow = new google.maps.InfoWindow();
 
+  socket.on('userList', function(user_data){
+    for (var i = 0; i < markers.length; i++) {
+      markers[i].setMap(null);
+    }
     for(var i=0; i<user_data.length; i++){
       userObj = user_data[i];
       marker[userObj.pseudoname] = new google.maps.Marker({
         position: new google.maps.LatLng(userObj.location.lat, userObj.location.lng),
         map: map
       });
-      // google.maps.event.addListener(newMarker, 'click', (function (newMarker, i) {
-      //   return function () {
-      //
-      //     infowindow.setContent(compiledContent[0].innerHTML);
-      //     infowindow.open(map, newMarker);
-      //   }
-      // })(newMarker, i));
-    }
-    console.log(JSON.stringify(user_data));
-  });
+      markers.push(marker[user_data[i].pseudoname]);
+      var newMarker=marker[userObj.pseudoname];
+      google.maps.event.addListener(newMarker, 'click', (function (newMarker, i) {
+        return function () {
+          infowindow.setContent('<div class="panel panel-info">' +
+          '<div class="panel-heading">' +
+          '<h3 class="panel-title">User Information</h3>' +
+          '</div>' +
+          '<div class="panel-body">' +
+          '<div class="row">' +
+          '<table class="table table-user-information">' +
+          '<tbody>' +
+          '<tr>' +
+          '<td>Name</td>' +
+          '<td>' + user_data[i].pseudoname + '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td>Phone Number:</td>' +
+          '<td>' + user_data[i].phone + '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td>Email</td>' +
+          '<td>' + user_data[i].email + '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td>TeamName</td>' +
+          '<td>' + user_data[i].teams + '</td>' +
+          '</tr>' +
+          '</tbody>' +
+          '</table>' +
+          '</div>' +
+          '</div>' +
+          '</div>'
+        );
+        infowindow.open(map, newMarker);
+      }
+    })(newMarker, i));
+
+
+
+
+  }
+  console.log(JSON.stringify(user_data));
+});
 }
 
 function error(err) {
