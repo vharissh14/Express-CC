@@ -99,17 +99,19 @@ function userAuthentication(username, userPassword, callback)
       {
         data.push(obj[i]);
       });
-      var password=bcrypt.compare(userPassword, data[1]);
-      if(username==data[0] && password)
-      {
-        getAllUsers(username,function(res){
-          return callback(res);
-        });
-      }
-      else
-      {
-        return callback("401");
-      }
+      console.log('inside login');
+      console.log(userPassword);
+      bcrypt.compare(userPassword, data[1].toString(), function(err, response){
+        if(response==true)
+        {
+          getAllUsers(username, function(res){
+            return callback(res);
+          });
+        }
+        else {
+          return callback("401");
+        }
+      });
     }
     else
     {

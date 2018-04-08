@@ -1,10 +1,10 @@
 {{> header }}
 <div class="container-fluid">
   <div class="row">
-    <div class="col">
+    <div class="col-sm-3">
 
     </div>
-    <div class="col">
+    <div class="col-sm-6">
       <div class="form-control">
         {{#if errors}}
         {{#each errors}}
@@ -47,7 +47,7 @@
             <label for="team">Team</label>
 
             <div class="row">
-              <div class="col-sm-8">
+              <div class="col">
                 <select class="form-control" id="teams" name="teams">
                   <option value="" disabled="" selected="">Please select the Team</option>
                   {{#each teamdetails}}
@@ -56,7 +56,7 @@
                 </select>
                 <!-- <p ng-show="registerForm.teams.$invalid && !registerForm.teams.$pristine" class="help-block">Team is required</p> -->
               </div>
-              <div class="col-sm-4">
+              <div class="col">
                 <button type="button" class="btn btn-info" data-toggle="modal" data-target="#myModal">Add Team</button>
               </div>
             </div>
@@ -107,7 +107,7 @@
 
       </div>
     </div>
-    <div class="col">
+    <div class="col-sm-3">
 
     </div>
   </div>

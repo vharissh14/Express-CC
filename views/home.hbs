@@ -7,11 +7,12 @@
 <script type="text/javascript">
 var socket = io.connect();
 var marker={};
+var markers=[];
 var userObj;
-var markers = [];
+var  infowindow;
 var options = {
   enableHighAccuracy: false,
-  timeout: 10000,
+  timeout: 15000,
   maximumAge: 0
 };
 
@@ -21,6 +22,7 @@ if (navigator.geolocation) {
 else {
   alert('Geo Location feature is not supported in this browser.');
 }
+
 function success(pos) {
   var myLatLng={lat:pos.coords.latitude, lng:pos.coords.longitude};
   console.log(myLatLng);
@@ -28,66 +30,114 @@ function success(pos) {
     zoom: 15,
     center: myLatLng
   });
+
   $.getJSON("/api/user", function(data) {
     data.user['location'] = myLatLng;
     socket.emit('subscribe', data.user);
   });
-  var infowindow = new google.maps.InfoWindow();
 
   socket.on('userList', function(user_data){
-    for (var i = 0; i < markers.length; i++) {
-      markers[i].setMap(null);
-    }
+    markers=[];
     for(var i=0; i<user_data.length; i++){
       userObj = user_data[i];
-      marker[userObj.pseudoname] = new google.maps.Marker({
-        position: new google.maps.LatLng(userObj.location.lat, userObj.location.lng),
-        map: map
-      });
-      markers.push(marker[user_data[i].pseudoname]);
-      var newMarker=marker[userObj.pseudoname];
+      marker['id']=user_data[i].pseudoname;
+      console.log("marker sdsdfdfs "+marker['id']);
+      marker[userObj.pseudoname] = new CustomMarker(new google.maps.LatLng(userObj.location.lat, userObj.location.lng), map, userObj.icon)
+      markers.push(marker);
+      var newMarker = marker[userObj.pseudoname];
       google.maps.event.addListener(newMarker, 'click', (function (newMarker, i) {
         return function () {
-          infowindow.setContent('<div class="panel panel-info">' +
-          '<div class="panel-heading">' +
-          '<h3 class="panel-title">User Information</h3>' +
-          '</div>' +
-          '<div class="panel-body">' +
-          '<div class="row">' +
+          infowindow.setContent('<div class="tabbable tabs-bottom">' +
+          '<div class="tab-content">' +
+          '<div class="tab-pane active" id="profile">' +
           '<table class="table table-user-information">' +
           '<tbody>' +
           '<tr>' +
-          '<td>Name</td>' +
-          '<td>' + user_data[i].pseudoname + '</td>' +
+          '<td class="name">Name</td>' +
+          '<td class="pseudoName">' + user_data[i].pseudoname + '</td>' +
           '</tr>' +
           '<tr>' +
-          '<td>Phone Number:</td>' +
-          '<td>' + user_data[i].phone + '</td>' +
+          '<td class="phoneNumber">Phone Number:</td>' +
+          '<td class="phone">' + user_data[i].phone + '</td>' +
           '</tr>' +
           '<tr>' +
-          '<td>Email</td>' +
-          '<td>' + user_data[i].email + '</td>' +
+          '<td class="emaiId">Email</td>' +
+          '<td class="email">' + user_data[i].email + '</td>' +
           '</tr>' +
           '<tr>' +
-          '<td>TeamName</td>' +
-          '<td>' + user_data[i].teams + '</td>' +
+          '<td class="teamName">TeamName</td>' +
+          '<td  class="teams">' + user_data[i].teams + '</td>' +
           '</tr>' +
           '</tbody>' +
           '</table>' +
           '</div>' +
+          '<a href="#" class="btn btn-primary">Call</a>'+
+          '<div class="tab-pane" id="video"> ' +
           '</div>' +
-          '</div>'
-        );
-        infowindow.open(map, newMarker);
+
+          '<div class="tab-pane" id="chat">' +
+          '<form class="form-inline">' +
+          '<div class="form-group mx-sm-3">' +
+          '<input type="text" class="form-control" id="msg" placeholder="enter your message here">' +
+          ' </div>' +
+          '<button type="submit" class="btn btn-primary" ng-click="sendMessage()">Send</button>' +
+          '</form>' +
+
+          '</div>' +
+
+          '</div>' +
+
+          '<ul class="nav nav-tabs">' +
+          '<li class="active">' +
+          '<a href="#profile" data-toggle="tab" title="profile" aria-expanded="false">' +
+          '<span class="round-tabs two">' +
+          '<i class="glyphicon glyphicon-user"></i>' +
+          '</span>' +
+          '</a>' +
+          ' </li>' +
+          '<li >' +
+          '<a href="#video" data-toggle="tab" title="video" aria-expanded="true">' +
+          '<span class="round-tabs three">' +
+          '<i class="glyphicon glyphicon-facetime-video"></i>' +
+          '</span>' +
+          '</a>' +
+          ' </li>' +
+          '<li class="">' +
+          '<a href="#chat" data-toggle="tab" title="Chat" aria-expanded="false">' +
+          '<span class="round-tabs four">' +
+          '<i class="glyphicon glyphicon-comment"></i>' +
+          ' </span>' +
+          '</a>' +
+          ' </li>' +
+
+          '</ul>' +
+
+          '</div>');
+          infowindow.open(map, newMarker);
+        }
+      })(newMarker, i));
+
+    }
+    console.log(JSON.stringify(user_data));
+    console.log('Marker Details Below:');
+    // console.log(JSON.stringify(markers));
+
+  });
+
+  socket.on('deletemap', function(pseudoname){
+    console.log('inside deletemap: '+pseudoname);
+    for(var i=0; i<markers.length; i++)
+    {
+      console.log('loggere '+markers[i].id);
+      if(markers[i].id==pseudoname)
+      {
+        console.log('inside delete');
+        markers[i][pseudoname].setMap(null);
       }
-    })(newMarker, i));
+    }
+    // marker[pseudoname].setMap(null);
+  });
 
-
-
-
-  }
-  console.log(JSON.stringify(user_data));
-});
 }
 
 function error(err) {
@@ -98,6 +148,70 @@ function error(err) {
   }
   console.warn(`ERROR(${err.code}): ${err.message}`);
 }
+
+function CustomMarker(latlng, map, imageSrc) {
+  infowindow = new google.maps.InfoWindow();
+  this.latlng_ = latlng;
+  this.imageSrc = imageSrc;
+  this.infoWindow=infowindow;
+
+  // Once the LatLng and text are set, add the overlay to the map.  This will
+  // trigger a call to panes_changed which should in turn call draw.
+  this.setMap(map);
+}
+
+CustomMarker.prototype = new google.maps.OverlayView();
+
+CustomMarker.prototype.draw = function () {
+  console.log("in")
+  // Check if the div has been created.
+  var div = this.div_;
+  if (!div) {
+    // Create a overlay text DIV
+    div = this.div_ = document.createElement('div');
+    // Create the DIV representing our CustomMarker
+    div.className = "customMarker"
+
+
+    var img = document.createElement("img");
+    img.src = this.imageSrc;
+    div.appendChild(img);
+    var self=this;
+    google.maps.event.addDomListener(div, "click", function (event) {
+      // google.maps.event.trigger(self, "click");
+      google.maps.event.trigger(self, "click");
+    });
+
+    // Then add the overlay to the DOM
+    var panes = this.getPanes();
+    panes.overlayImage.appendChild(div);
+  }
+
+  // Position the overlay
+  var point = this.getProjection().fromLatLngToDivPixel(this.latlng_);
+  if (point) {
+    div.style.left = point.x + 'px';
+    div.style.top = point.y + 'px';
+  }
+};
+
+CustomMarker.prototype.remove = function () {
+  // Check if the overlay was on the map and needs to be removed.
+  if (this.div_) {
+    this.div_.parentNode.removeChild(this.div_);
+    this.div_ = null;
+  }
+};
+
+CustomMarker.prototype.getPosition = function () {
+  return this.latlng_;
+};
+CustomMarker.prototype.setPosition = function (latlng_) {
+  this.latlng_ = latlng_;
+  this.draw();
+  this.infoWindow.setPosition(latlng_);
+
+};
 </script>
 
 {{> footer-end }}

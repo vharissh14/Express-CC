@@ -69,7 +69,6 @@ require('./controllers/mapsocket')(function (callback){
 });
 passport.use(new LocalStrategy({ passReqToCallback: true },
   function(req, username, password, done) {
-    console.log(req);
     require('./services/redisdb')(function (db1){
       db1.userAuthentication(username, password, function(status){
         if(status=='401'){
