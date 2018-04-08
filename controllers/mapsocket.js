@@ -46,19 +46,7 @@ function socketio(io){
       io.sockets.emit('locationUpdate', data);
     })
 
-    socket.on('disconnect', function (pseudoname) {
-      console.log("dis")
-      var index = userList.indexOf(socket.user);
-      userList.splice(index, 1);
-      var rooms = [];
-      var pseudoname;
-      for (var i = 0; i < userList.length; i++) {
-        if (userList[i].eventname == room) {
-          pseudoname=userList[i].pseudoname;
-          rooms.push(userList[i])
-        }
-      }
-      console.log("json data: "+JSON.stringify(userList));
+    socket.on('disconnect1', function (pseudoname) {
       // io.sockets.to(room).emit('userList', rooms);
       io.sockets.to(room).emit('deletemap', pseudoname);
     });

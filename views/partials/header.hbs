@@ -46,15 +46,17 @@
           <a class="nav-link" href="/home">Profile</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/logout" onclick="logout()">Logout</a>
+          <a class="nav-link" href="/logout">Logout</a>
         </li>
         {{/if}}
       </ul>
     </div>
   </nav>
-<script type="text/javascript">
+  <script type="text/javascript">
   function logout(){
     var socket = io.connect();
-    socket.disconnect();
+    $.getJSON("/api/user", function(data) {
+      socket.emit('disconnect', data.user['pseudoname']);
+    });
   }
 </script>
