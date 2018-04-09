@@ -29,10 +29,8 @@ router.get('/api/user', function(req, res) {
 });
 
 router.post('/team', function(req, res, next){
-
   var team = req.body;
   team.id=require('uuid/v4')();
-  // validation
   require('../services/redisdb')(function (db1){
     db1.saveTeam(team, function(result){
       var teams=[];
@@ -45,7 +43,6 @@ router.post('/team', function(req, res, next){
       res.render('register', { title: 'User Registration', teamdetails: teams });
     });
   });
-
 });
 
 router.get('/login', function(req, res, next) {
